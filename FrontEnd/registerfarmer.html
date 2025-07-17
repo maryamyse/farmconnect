@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Register Farmer</title>
+    </head>
+    <body>
+        <div class="container">
+            <h1>Register Farmer</h1>
+            <form id="registerFarmerForm" method="POST" action="/register-farmer">
+                <label for="name">Farmer Name:</label>
+                <input type="text" id="name" name="name" required />
+
+                <label for="phone">Phone Number:</label>
+                <input type="tel" id="phone" name="phone" required />
+
+                <label for="location">Location:</label>
+                <input type="text" id="location" name="location" required />
+                <label for="crop">Crop Type:</label>
+                <input type="text" id="crop" name="crop" required />
+                <label for="poultryfarmer">Poultry Farmer:</label>
+                <input type="checkbox" id="poultryfarmer" name="poultryfarmer" value="yes" />
+                <input type="hidden" name="poultryfarmer" value="no" />
+                <label for="poultrytype">Poultry Type:</label>
+                <input type="text" id="poultrytype" name="poultrytype" placeholder="e.g. Broilers, Layers" />
+                <button type="submit">Register Farmer</button>
+            </form>
+        </div>
+
+        <script>
+            document.getElementById("registerFarmerForm").addEventListener("submit", function(event) {
+                event.preventDefault(); // Prevent form submission
+
+                const name = document.getElementById("name").value;
+                const phone = document.getElementById("phone").value;
+                const location = document.getElementById("location").value;
+
+                // Simulate a successful registration
+                alert(`Farmer ${name} registered successfully!`);
+
+                // Optionally, you can redirect or clear the form
+                this.reset();
+            });
+        </script>
+        <style>
+            body{
+                background-color: #f4f7f6;
+                margin: 0;
+                font-family: 'Trebuchet MS', 'Lucida Sans Unicode';
+            }
+            .container{
+                background: #bfc5c4;
+                padding: 40px;
+                display:block;
+                max-width: 400px;
+                margin: auto;
+                border-radius: 10px;
+                box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            }
+            h1 {
+                text-align: center;
+                color: #333;
+            }
+            form {
+                display: flex;
+                flex-direction: column;
+            }
+            label {
+                margin-top: 10px;
+                color: #333;
+            }
+            input, button {
+                width: 100%;
+                padding: 10px;
+                margin-top: 5px;
+                margin-bottom: 15px;
+                border-radius: 5px;
+                border: 1px solid #ccc;
+            }
+            button {
+                background-color: #2e7d32;
+                color: white;
+                cursor: pointer;
+            }
+            button:hover {
+                background-color: #1b5e20;
+            }
+
+        </style>
+</html>

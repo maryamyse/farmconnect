@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FIPSConnect - Login</title>
+  <link rel="stylesheet" href="style.css" />
+  <img src="https://i0.wp.com/fipsafrica.org/wp-content/uploads/2025/06/cropped-FIPS-Africa-logos-three-colours-transparent-BG.png?resize=768%2C358&ssl=1" alt="FIPS Logo" style="width: 100px; height: auto; display: block; margin: 0 auto; "/>
+</head>
+<body>
+  <div class="container">
+    <h1>FIPS Africa</h1>
+    <form id="loginForm" method="POST" action="/login">
+      <h2>Login to FIPS Connect</h2>
+      <label for="username">Username:</label>
+      <input type="text" id="username" name="username" required />
+      
+      <label for="phone">Phone Number:</label>
+      <input type="tel" id="phone" name="phone" required />
+
+      <label for="password">Password:</label>
+      <input type="password" id="password" name="password" required />
+
+      <label for="role">Select Role:</label>
+      <select id="role" name="role">
+        <option value="vba">VBA</option>
+        <option value="agro">Agro-dealer</option>
+        <option value="admin">FIPS Admin</option>
+      </select>
+        <p id="message"></p>
+
+      <button type="submit">Login</button>
+    </form>
+  <script src="script.js"></script>
+</body>
+</html>
+
+
+
+

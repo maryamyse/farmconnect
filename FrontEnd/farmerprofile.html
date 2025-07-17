@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Farmers Profile</title>
+    </head>
+    <body>
+        <div class="container">
+            <h1>Farmer Profile</h1>
+            <form id="farmerProfileForm" method="POST" action="/farmer-profile">
+                <label for="farmerName">Farmer Name:</label>
+                <input type="text" id="farmerName" name="farmerName" required />
+
+                <button type="submit">Search Farmer</button>
+            </form>
+
+            <div id="profileDetails">
+                <!-- Farmer details will be displayed here after search -->
+            </div>
+        </div>
+
+        <script>
+            document.getElementById("farmerProfileForm").addEventListener("submit", function(event) {
+                event.preventDefault(); // Prevent form submission
+
+                const farmerId = document.getElementById("farmerId").value;
+
+                // Simulate fetching farmer details
+                alert(`Fetching details for Farmer ID: ${farmerId}`);
+
+                // Optionally, you can display the fetched details in the profileDetails div
+                document.getElementById("profileDetails").innerHTML = `<p>Details for Farmer ID: ${farmerId}</p>`;
+            });
+        </script>
+
+        <style>
+            body {
+                background-color: #f4f7f6;
+                margin: 0;
+                font-family: 'Trebuchet MS', 'Lucida Sans Unicode';
+            }
+            .container {
+                background: #bfc5c4;
+                padding: 40px;
+                display: block;
+                max-width: 400px;
+                margin: auto;
+                border-radius: 10px;
+                box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            }
+            h1 {
+                text-align: center;
+                color: #333;
+            }
+            form {
+                display: flex;
+                flex-direction: column;
+            }
+            label {
+                margin-top: 10px;
+            }
+            input {
+                padding: 8px;
+                margin-top: 5px;
+                border-radius: 4px;
+                border: 1px solid #ccc;
+            }
+            button {
+                margin-top: 20px;
+                padding: 10px;
+                background-color: #2e7d32;
+                color: white;
+                border: none;
+                border-radius: 4px;
+                cursor: pointer;
+            }
+            button:hover {
+                background-color: #1b5e20;
+            }
+        </style>
+    </body>
+</html>

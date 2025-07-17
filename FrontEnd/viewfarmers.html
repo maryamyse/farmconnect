@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>View Farmers</title>
+    </head>
+    <body>
+        <div class="container">
+            <h1>View Farmers</h1>
+            <table id="farmersTable">
+                <thead>
+                    <tr>
+            
+                        <th>Name</th>
+                        <th>Phone</th>
+                        <th>Location</th>
+                        <th>Crop Type</th>
+                        <th>Poultry Farmer</th>
+                        <th>Poultry Type</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Farmers data will be populated here -->
+                </tbody>
+            </table>
+            <style>
+                body{
+                    background-color: #f4f7f6;
+                    margin: 0;
+                    font-family: 'Trebuchet MS', 'Lucida Sans Unicode';
+                }
+                .container{
+                    background: #bfc5c4;
+                    padding: 40px;
+                    display:block;
+                    max-width: 600px;
+                    margin: auto;
+                    border-radius: 10px;
+                    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+                }
+                h1 {
+                    text-align: center;
+                    color: #333;
+                }
+                table {
+                    width: 100%;
+                    border-collapse: collapse;
+                }
+                th, td {
+                    padding: 10px;
+                    text-align: left;
+                    border-bottom: 1px solid #ddd;
+                }
+                th {
+                    background-color: #2e7d32;
+                    color: white;
+                }
+                tr:hover {
+                    background-color: #f1f1f1;
+                }
+                tbody tr:nth-child(even) {
+                    background-color: #f9f9f9;
+                }
+                tbody tr:nth-child(odd) {
+                    background-color: #ffffff;
+                }
+                tbody tr:hover {
+                    background-color: #e0f2f1;
+                }
+                
+            </style>
+    </body>
+</html>

@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Log Visit</title>
+    </head>
+    <body>
+        <div class="container">
+            <h1>📋 Log Field Visit</h1>
+
+<form>
+  <label>Date of Visit:</label>
+  <input type="date" required><br>
+
+  <label>Time:</label>
+  <input type="time"><br>
+
+  <label>Village:</label>
+  <input type="text" placeholder="e.g. Ulwan Village"><br>
+
+  <label>Farmers Visited:</label>
+  <input type="text" placeholder="e.g. Mama Brian, John Kipkoech"><br>
+
+  <label>Activities Performed:</label><br>
+  <input type="checkbox"> Training on soil<br>
+  <input type="checkbox"> Distributed inputs<br>
+  <input type="checkbox"> Demo Follow-up<br>
+  <input type="checkbox"> Other<br>
+  <textarea placeholder="Other activity details..."></textarea><br>
+
+  <label>Notes/Observations:</label><br>
+  <textarea></textarea><br>
+
+  <button type="submit">Submit Visit Log</button>
+</form>
+        </div>
+        <script>
+            document.querySelector("form").addEventListener("submit", function(event) {
+                event.preventDefault(); // Prevent form submission
+                alert("Visit logged successfully!");
+                this.reset(); // Reset the form
+            });
+            </script>
+            <style>
+                body{
+                    background-color: #f4f7f6;
+                    margin: 0;
+                    font-family: 'Trebuchet MS', 'Lucida Sans Unicode';
+                }
+                .container{
+                    background: #bfc5c4;
+                padding: 40px;
+                display:block;
+                max-width: 400px;
+                margin: auto;
+                border-radius: 10px;
+                box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            }
+                h1 {
+                    color: #333;
+                }
+                form {
+                    display: flex;
+                    flex-direction: column;
+                }
+                label {
+                    margin-top: 10px;
+                }
+                input, textarea {
+                    padding: 8px;
+                    margin-top: 5px;
+                    border-radius: 4px;
+                    border: 1px solid #ccc;
+                }
+                button {
+                    margin-top: 20px;
+                    padding: 10px;
+                    background-color: #2e7d32;
+                    color: white;
+                    border: none;
+                    border-radius: 4px;
+                    cursor: pointer;
+                }
+
+        
+            </style>
+        
+    </body>
+</html>
