@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/6.1/ref/settings/
 """
 
 from pathlib import Path
+from decouple import config
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -20,10 +21,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/6.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-yug@ze0el(mw(-(s&cs%9cy&!nd_nrxiq)5wfxs6-ss$9rqyol'
+SECRET_KEY = config('SECRET_KEY', default='django-insecure-yug@ze0el(mw(-(s&cs%9cy&!nd_nrxiq)5wfxs6-ss$9rqyol')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = config('DEBUG', default=True, cast=bool)
 
 ALLOWED_HOSTS = []
 
@@ -134,9 +135,29 @@ MAILERS = {
 # Celery
 # https://docs.celeryq.dev/en/stable/userguide/configuration.html
 
-CELERY_BROKER_URL = 'redis://localhost:6379/0'
+CELERY_BROKER_URL = config('CELERY_BROKER_URL', default='redis://localhost:6379/0')
 CELERY_RESULT_BACKEND = 'django-db'
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TIMEZONE = 'UTC'
+
+
+# Daraja (M-Pesa) Sandbox
+# https://developer.safaricom.co.ke/
+
+DARAJA_CONSUMER_KEY = config('DARAJA_CONSUMER_KEY', default='')
+DARAJA_CONSUMER_SECRET = config('DARAJA_CONSUMER_SECRET', default='')
+DARAJA_SHORTCODE = config('DARAJA_SHORTCODE', default='')
+DARAJA_INITIATOR_NAME = config('DARAJA_INITIATOR_NAME', default='')
+DARAJA_SECURITY_CREDENTIAL = config('DARAJA_SECURITY_CREDENTIAL', default='')
+DARAJA_BASE_URL = config('DARAJA_BASE_URL', default='https://sandbox.safaricom.co.ke')
+DARAJA_B2C_CALLBACK_URL = config('DARAJA_B2C_CALLBACK_URL', default='')
+DARAJA_B2C_TIMEOUT_URL = config('DARAJA_B2C_TIMEOUT_URL', default='')
+
+
+# Africa's Talking Sandbox
+# https://account.africastalking.com/
+
+AT_USERNAME = config('AT_USERNAME', default='sandbox')
+AT_API_KEY = config('AT_API_KEY', default='')
