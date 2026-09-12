@@ -5,6 +5,7 @@ Safaricom Daraja docs: https://developer.safaricom.co.ke/
 """
 import base64
 import logging
+import uuid
 
 import requests
 from django.conf import settings
@@ -105,14 +106,19 @@ def send_b2c_payout(
         )
 
     token = get_access_token()
-    url = f"{settings.DARAJA_BASE_URL}/mpesa/b2c/v1/paymentrequest"
+    url = f"{settings.DARAJA_BASE_URL}/mpesa/b2c/v3/paymentrequest"
 
     headers = {
         "Authorization": f"Bearer {token}",
         "Content-Type": "application/json",
     }
 
+    # Required by v3: a unique ID per request, used by Safaricom to prevent
+    # double disbursement and to look up transaction status later.
+    originator_conversation_id = f"farmconnect_{uuid.uuid4()}"
+
     payload = {
+        "OriginatorConversationID": originator_conversation_id,
         "InitiatorName": settings.DARAJA_INITIATOR_NAME,
         "SecurityCredential": settings.DARAJA_SECURITY_CREDENTIAL,
         "CommandID": command_id,
@@ -122,7 +128,7 @@ def send_b2c_payout(
         "Remarks": remarks,
         "QueueTimeOutURL": settings.DARAJA_B2C_TIMEOUT_URL,
         "ResultURL": settings.DARAJA_B2C_CALLBACK_URL,
-        "Occasion": occasion,
+        "Occassion": occasion,  # NOTE: Safaricom's v3 docs misspell this "Occassion" (double-s) — must match exactly.
     }
 
     response = requests.post(url, json=payload, headers=headers, timeout=30)
