@@ -1,5 +1,6 @@
 """
-Daraja API client — handles OAuth token retrieval and B2C bulk payout requests.
+Daraja API client — handles OAuth token retrieval, B2C bulk payout requests,
+and transaction status queries.
 
 Safaricom Daraja docs: https://developer.safaricom.co.ke/
 """
@@ -9,8 +10,15 @@ import uuid
 
 import requests
 from django.conf import settings
+from django.core.cache import cache
 
 logger = logging.getLogger(__name__)
+
+_TOKEN_CACHE_KEY = "daraja_access_token"
+# Daraja tokens last ~3600s; cache for slightly less to avoid using an
+# about-to-expire token, and to stay well clear of Safaricom's rate limits
+# by not requesting a fresh token on every single API call.
+_TOKEN_CACHE_TTL = 3500
 
 
 class DarajaConfigError(Exception):
@@ -36,12 +44,26 @@ def _require_credentials():
         )
 
 
-def get_access_token() -> str:
+def get_access_token(force_refresh: bool = False) -> str:
     """
     Fetch an OAuth access token from Daraja using Consumer Key/Secret.
-    Tokens are short-lived (typically 1 hour) — callers should not cache
-    this beyond a single task execution without checking expiry.
+
+    Cached for ~58 minutes to avoid hammering Daraja's auth endpoint on
+    every call — Safaricom's sandbox (and likely production) rate-limits
+    or blocks (via Incapsula WAF) clients that request tokens too
+    frequently in a short window, which happens easily if many tasks
+    each independently call this without caching.
+
+    Args:
+        force_refresh: bypass the cache and fetch a new token anyway
+            (e.g. if a call failed with an auth error, the cached token
+            might have been revoked or is otherwise bad).
     """
+    if not force_refresh:
+        cached = cache.get(_TOKEN_CACHE_KEY)
+        if cached:
+            return cached
+
     _require_credentials()
 
     url = f"{settings.DARAJA_BASE_URL}/oauth/v1/generate?grant_type=client_credentials"
@@ -61,6 +83,7 @@ def get_access_token() -> str:
     if not token:
         raise DarajaAPIError(f"No access_token in Daraja response: {data}")
 
+    cache.set(_TOKEN_CACHE_KEY, token, _TOKEN_CACHE_TTL)
     return token
 
 
@@ -75,19 +98,10 @@ def send_b2c_payout(
     """
     Trigger a B2C bulk payout via Daraja.
 
-    Args:
-        amount: Amount in KES (whole number, as required by Daraja).
-        phone_number: Recipient's phone number in format 2547XXXXXXXX.
-        remarks: Short description of the payment (shown to Safaricom, not the farmer).
-        occasion: Optional additional context string.
-        command_id: One of "SalaryPayment", "BusinessPayment", "PromotionPayment".
-            BusinessPayment is the standard choice for cooperative payouts.
-
     Returns:
-        The parsed JSON response from Daraja (contains ConversationID etc.)
-        Note: this is just the *request acknowledgement* — the actual payout
-        result arrives later via the callback URL, which must be handled
-        separately (see integrations/views.py).
+        The parsed JSON acknowledgement response from Daraja (contains
+        ConversationID etc.) — the actual payout result arrives later via
+        the callback URL, handled separately (see integrations/views.py).
     """
     _require_credentials()
 
@@ -113,8 +127,6 @@ def send_b2c_payout(
         "Content-Type": "application/json",
     }
 
-    # Required by v3: a unique ID per request, used by Safaricom to prevent
-    # double disbursement and to look up transaction status later.
     originator_conversation_id = f"farmconnect_{uuid.uuid4()}"
 
     payload = {
@@ -128,7 +140,7 @@ def send_b2c_payout(
         "Remarks": remarks,
         "QueueTimeOutURL": settings.DARAJA_B2C_TIMEOUT_URL,
         "ResultURL": settings.DARAJA_B2C_CALLBACK_URL,
-        "Occassion": occasion,  # NOTE: Safaricom's v3 docs misspell this "Occassion" (double-s) — must match exactly.
+        "Occassion": occasion,  # Safaricom's v3 docs misspell this "Occassion" — must match exactly.
     }
 
     response = requests.post(url, json=payload, headers=headers, timeout=30)
@@ -136,5 +148,71 @@ def send_b2c_payout(
     if response.status_code != 200:
         logger.error("Daraja B2C request failed: %s - %s", response.status_code, response.text)
         raise DarajaAPIError(f"B2C request failed: {response.status_code} - {response.text}")
+
+    return response.json()
+
+
+def query_transaction_status(
+    *,
+    transaction_id: str = "",
+    originator_conversation_id: str = "",
+    remarks: str = "Transaction status query",
+    occasion: str = "",
+) -> dict:
+    """
+    Query Daraja for the status of a previously-submitted transaction.
+
+    Fallback/reconciliation mechanism for when a B2C ResultURL callback
+    was not received. Also asynchronous — Daraja acknowledges immediately,
+    then sends the actual status via ResultURL (see integrations/views.py).
+    """
+    _require_credentials()
+
+    required_settings = {
+        'DARAJA_SHORTCODE': settings.DARAJA_SHORTCODE,
+        'DARAJA_INITIATOR_NAME': settings.DARAJA_INITIATOR_NAME,
+        'DARAJA_SECURITY_CREDENTIAL': settings.DARAJA_SECURITY_CREDENTIAL,
+        'DARAJA_B2C_CALLBACK_URL': settings.DARAJA_B2C_CALLBACK_URL,
+        'DARAJA_B2C_TIMEOUT_URL': settings.DARAJA_B2C_TIMEOUT_URL,
+    }
+    missing = [name for name, value in required_settings.items() if not value]
+    if missing:
+        raise DarajaConfigError(
+            f"Missing required Daraja settings: {', '.join(missing)}. "
+            f"Add these to your .env file."
+        )
+
+    if not transaction_id and not originator_conversation_id:
+        raise ValueError(
+            "Must provide either transaction_id or originator_conversation_id."
+        )
+
+    token = get_access_token()
+    url = f"{settings.DARAJA_BASE_URL}/mpesa/transactionstatus/v1/query"
+
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "Content-Type": "application/json",
+    }
+
+    payload = {
+        "Initiator": settings.DARAJA_INITIATOR_NAME,
+        "SecurityCredential": settings.DARAJA_SECURITY_CREDENTIAL,
+        "CommandID": "TransactionStatusQuery",
+        "TransactionID": transaction_id,
+        "OriginatorConversationID": originator_conversation_id,
+        "PartyA": settings.DARAJA_SHORTCODE,
+        "IdentifierType": "4",
+        "ResultURL": settings.DARAJA_B2C_CALLBACK_URL,
+        "QueueTimeOutURL": settings.DARAJA_B2C_TIMEOUT_URL,
+        "Remarks": remarks,
+        "Occasion": occasion,
+    }
+
+    response = requests.post(url, json=payload, headers=headers, timeout=30)
+
+    if response.status_code != 200:
+        logger.error("Transaction status query failed: %s - %s", response.status_code, response.text)
+        raise DarajaAPIError(f"Transaction status query failed: {response.status_code} - {response.text}")
 
     return response.json()
